@@ -1,0 +1,1 @@
+export const startCommandMessage =  `Добро пожаловать в Telegram Channel Parser Bot`
