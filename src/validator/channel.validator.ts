@@ -4,9 +4,9 @@ import {IValidateChannelResponse} from "../response/response.interface";
 import {AxiosResponse} from "axios"
 
 export interface IChannelValidator {
-    validate(channelLink : string) : Promise<IValidateChannelResponse | string>
+    validate(url : string, body : IRequestValidateChannelData) : Promise<IValidateChannelResponse | string>
 }
-export class ChannelValidator {
+export class ChannelValidator implements IChannelValidator{
     async validate(url : string, body : IRequestValidateChannelData) : Promise<IValidateChannelResponse | string> {
         try {
             const result : AxiosResponse<IValidateChannelResponse> = await axios.post(url, body)

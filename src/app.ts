@@ -6,6 +6,7 @@ import {StartCommand} from "./bot/commands/start.command";
 import {ChannelsCommand} from "./bot/commands/channels.command";
 import {stage} from "./bot/scenes/addChannels.scene";
 import {ConfigService} from "./config.service";
+import {ParseChannelsCommand} from "./bot/commands/parseChannels.command";
 
 class Bot {
     bot : Telegraf<MyContext>;
@@ -17,7 +18,7 @@ class Bot {
         this.bot.use(session())
         this.bot.use(stage.middleware())
         this.commands = [
-            new StartCommand(this.bot), new ChannelsCommand(this.bot)]
+            new StartCommand(this.bot), new ChannelsCommand(this.bot), new ParseChannelsCommand(this.bot)]
         for (const command of this.commands) {
             command.handle()
         }
