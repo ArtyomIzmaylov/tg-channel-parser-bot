@@ -3,15 +3,26 @@ import {IMarkupCategoryButton} from "../keyboard/find.command.keyboard";
 
 
 
+export interface IUserChannel {
+    title : string
+    parseChannels : string[]
+}
+export interface IUser {
+    id : number
+    userChannels : IUserChannel[] | []
+
+}
+
+
+
 interface MyWizardSession extends Scenes.WizardSessionData {
     state : {
-        selectedCategories: any[];
-        markupCategoryKeyboardProp : IMarkupCategoryButton[];
+        user : IUser
     }
 }
 
 interface MySession extends Scenes.WizardSession<MyWizardSession> {
-    selectedCategories: string[];
+    user : IUser
 }
 
 export interface MyContext extends Context {

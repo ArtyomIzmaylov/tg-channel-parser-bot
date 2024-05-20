@@ -9,9 +9,9 @@ export class ChannelsCommand extends Command {
         super(bot);
     }
     handle() {
-        this.bot.command('channels', async (ctx) => {
+        this.bot.command('addChannels', async (ctx) => {
             await ctx.reply('В бесплатной версиии вы можете добавить 5 каналов, с которых вы будете парсить контент')
-            await ctx.scene.enter('channelsScene')
+            await ctx.scene.enter('addChannelsScene')
         })
     }
 }
