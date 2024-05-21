@@ -9,6 +9,7 @@ export interface IChannelValidator {
 export class ChannelValidator implements IChannelValidator{
     async validate(url : string, body : IRequestValidateChannelData) : Promise<IValidateChannelResponse | string> {
         try {
+            console.log(url, body)
             const result : AxiosResponse<IValidateChannelResponse> = await axios.post(url, body)
             return result.data
         }

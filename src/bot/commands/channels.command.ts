@@ -1,7 +1,6 @@
 import {Telegraf} from "telegraf";
 import {Command} from "./command.class";
 import {MyContext} from "../context/context.interface";
-import {channelsCommandKeyboard} from "../keyboard/channels.command.keyboard";
 
 
 export class ChannelsCommand extends Command {

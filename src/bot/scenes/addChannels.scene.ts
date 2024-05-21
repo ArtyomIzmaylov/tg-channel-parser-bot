@@ -1,9 +1,10 @@
 import {Composer, Scenes} from "telegraf";
-import {IUserChannel, MyContext} from "../context/context.interface";
+import {MyContext} from "../context/context.interface";
 import {channelsCommandKeyboard} from "../keyboard/channels.command.keyboard";
 import {postRequest} from "../../placeholder/fakeBackendDreamsResultAPI.placeholder";
 import {ChannelValidator} from "../../validator/channel.validator";
 import {IValidateChannelResponse} from "../../response/response.interface";
+import {IUserChannel} from "../../user/user.interface";
 
 const zeroStep = new Composer<MyContext>();
 
@@ -62,6 +63,7 @@ secondChannel.on('text', async (ctx) => {
         const result = await channelValidator.validate('http://localhost:8081/api/validateChannel', {
             channelName : ctx.message.text
         }) as IValidateChannelResponse
+        console.log(result)
         if (result.workerResult === 'Канал существует')  {
             ctx.scene.session.state.user.userChannels[0].parseChannels.push(ctx.message.text)
             await ctx.reply('Канал успешно добавлен! Напишите название 3-го канала', channelsCommandKeyboard)
@@ -103,7 +105,7 @@ thirdChannel.on('text', async (ctx) => {
 
 
 
-const addChannelsScene = new Scenes.WizardScene<MyContext>(
+export const addChannelsScene = new Scenes.WizardScene<MyContext>(
     "addChannelsScene",
     zeroStep,
     zeroChannel,
@@ -112,6 +114,5 @@ const addChannelsScene = new Scenes.WizardScene<MyContext>(
     thirdChannel
 );
 
-export const stage = new Scenes.Stage<MyContext>([addChannelsScene]);
 
 

@@ -1,33 +1,28 @@
 import {Context, Scenes} from "telegraf";
-import {IMarkupCategoryButton} from "../keyboard/find.command.keyboard";
+import {ISelectedChannelUser, IUser} from "../../user/user.interface";
 
 
 
-export interface IUserChannel {
-    title : string
-    parseChannels : string[]
-}
-export interface IUser {
-    id : number
-    userChannels : IUserChannel[] | []
-
-}
 
 
 
 interface MyWizardSession extends Scenes.WizardSessionData {
     state : {
         user : IUser
+        userChannels : ISelectedChannelUser[]
     }
 }
 
 interface MySession extends Scenes.WizardSession<MyWizardSession> {
     user : IUser
+    userChannels : ISelectedChannelUser[]
 }
 
 export interface MyContext extends Context {
-    myContextProp: string;
     session: MySession;
     scene: Scenes.SceneContextScene<MyContext, MyWizardSession>;
     wizard: Scenes.WizardContextWizard<MyContext>;
 }
+
+
+
