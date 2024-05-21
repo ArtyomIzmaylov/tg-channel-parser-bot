@@ -8,6 +8,8 @@ import {ISelectedChannelUser} from "../../user/user.interface";
 
 const zeroStep = new Composer<MyContext>();
 const firstStep = new Composer<MyContext>()
+const secondStep = new Composer<MyContext>()
+
 const channelsFetcher = new ChannelsFetcher()
 const textGenerator = new TextGenerator()
 
@@ -16,21 +18,20 @@ zeroStep.on('text', async (ctx) => {
         const fetchedChannels = await channelsFetcher.fetch('http://localhost:5000/api/getChannels', {
             telegramId : Number(ctx.from.id)
         }) as IResponseFetchChannels
-        ctx.scene.session.state.userChannels = fetchedChannels.userChannels.map((channel, index=1) => {
+        const userChannels = fetchedChannels.userChannels.map((channel, index) => {
             return {title : channel.title, isSelected : false, index : `chn_${index}`, channels : channel.parseChannels}
         }) as ISelectedChannelUser[]
+        ctx.scene.session.state.userChannels = userChannels
 
+        await ctx.reply('Выберите каналы',  Markup.inlineKeyboard(
+            [
+                    [Markup.button.callback(userChannels[0].title, 'chn_0')],
+                    [Markup.button.callback(userChannels[1].title, 'chn_1')],
+                    [Markup.button.callback(userChannels[2].title, 'chn_2')],
+                    [Markup.button.callback('Выйти', 'Выйти')],
 
-        const channelsInlineKeyboard = ctx.scene.session.state.userChannels.map(
-            channel => {
-                console.log(channel.index)
-                return [Markup.button.callback(channel.title, `${channel.index}`)]
-            })
-
-        await ctx.reply('Выберите каналы из списка', Markup.inlineKeyboard(channelsInlineKeyboard))
-        await ctx.reply('Как выберите категории, можете продолжить', Markup.keyboard([
-            [Markup.button.callback('Готово', 'findReady')],
-        ],).oneTime().resize())
+            ]
+        ))
         await ctx.wizard.next()
 
     }
@@ -40,58 +41,37 @@ zeroStep.on('text', async (ctx) => {
 })
 
 
-firstStep.action(["chn_0", "chn_1", "chn_2"], async (ctx) => {
-    try {
-        const channel = ctx.match.input;
-        console.log(channel)
-        ctx.scene.session.state.userChannels = ctx.scene.session.state.userChannels.map(chn => {
-            if (chn.index === channel) {
-                chn.isSelected = !chn.isSelected
-            }
-            return chn
-        })
-        const channelsKeyboard = ctx.scene.session.state.userChannels.map(
-            chn => {
-                if (chn.isSelected) {
-                    return [Markup.button.callback(chn.title + '✅', chn.index)]
-                }
-                return [Markup.button.callback(chn.title, chn.index)]
-            })
-        await ctx.editMessageReplyMarkup({
-            inline_keyboard: channelsKeyboard
-        });
+firstStep.action(['chn_0', 'chn_1', 'chn_2', 'Выйти'], async (ctx) => {
+    console.log(ctx.match.input)
+    if (ctx.match.input === 'Выйти') {
+        await ctx.scene.leave()
+        await ctx.editMessageText('Вы вышли. Если захотите снова искать, используйте команда /parseChannels')
+
     }
-    catch {
-    }
-
-})
-
-
-firstStep.hears('Готово', async (ctx) => {
-    try {
-
+    else {
+        const userChannel = (ctx.scene.session.state.userChannels).find(channel => channel.index === ctx.match.input) as ISelectedChannelUser
         const sendData : IRequestSendChannels = {
-            userChannels : ctx.scene.session.state.userChannels
-                .filter(chn => chn.isSelected)
-                .map(channel => {
-                    return {
-                        title : channel.title,
-                        channels : channel.channels
-                    }
-                }) as IRequestUserChannel[]
+            userChannels : [
+                {
+                    title : userChannel.title,
+                    channels : userChannel.channels
+                }
+            ]
         }
-        const generatedTexts = await textGenerator.generate(
-            'http://localhost:8081/api/parseChannels',
-            sendData
-        ) as IResponseGenerateTexts
-        await ctx.reply(generatedTexts.result[0].data)
-        await ctx.reply(generatedTexts.result[1].data)
-        await ctx.reply('Контент успешно спарсился !')
+        const generateText= await textGenerator.generate('http://localhost:8081/api/parseChannels', sendData) as IResponseGenerateTexts
+        await ctx.reply(generateText.result[0].data)
+        await ctx.reply(`Контент для канала ${userChannel.title} успешно сгенерировался. Примите решение`,  Markup.inlineKeyboard(
+            [
+                [Markup.button.callback('Удалить ссылки', 'deleteAdds')],
+                [Markup.button.callback('Перегенерировать', 'regenerate')],
+                [Markup.button.callback('Готово', 'exit')],
+
+            ]
+        ))
+
         await ctx.scene.leave()
     }
-    catch (e) {
-        await ctx.scene.leave()
-    }
+
 })
 
 

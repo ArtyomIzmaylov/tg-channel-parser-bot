@@ -5,7 +5,9 @@ enum IValidateChannelStatus {
     ChannelDoesNotExists = 'Канал не существует'
 }
 export interface IValidateChannelResponse {
-    workerResult : string
+    data : {
+        workerResult : string
+    }
 }
 
 

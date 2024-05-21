@@ -9,7 +9,6 @@ export interface ITextGenerator {
 export class TextGenerator implements ITextGenerator{
     async generate(url : string, body : IRequestSendChannels) : Promise<IResponseGenerateTexts | string> {
         try {
-            console.log(JSON.stringify(body))
             const result : AxiosResponse<IResponseGenerateTexts> = await axios.post(url, body)
             return result.data
         }

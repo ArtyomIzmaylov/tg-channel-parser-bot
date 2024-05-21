@@ -22,7 +22,6 @@ zeroStep.on('text', async (ctx) => {
     await ctx.reply('Каналы сброшены. Введите название вашего телеграмм канала', channelsCommandKeyboard)
     await ctx.wizard.next()
 })
-
 zeroChannel.on('text', async (ctx) => {
     try {
         (ctx.scene.session.state.user.userChannels[0] as IUserChannel) = {
@@ -43,7 +42,7 @@ firstChannel.on('text', async (ctx) => {
             channelName : ctx.message.text
         }) as IValidateChannelResponse
 
-        if (result.workerResult === 'Канал существует') {
+        if (result.data.workerResult === 'Канал существует') {
             ctx.scene.session.state.user.userChannels[0].parseChannels.push(ctx.message.text)
             await ctx.reply('Канал успешно добавлен! Напишите название 2-го канала', channelsCommandKeyboard)
             await ctx.wizard.next()
@@ -64,7 +63,7 @@ secondChannel.on('text', async (ctx) => {
             channelName : ctx.message.text
         }) as IValidateChannelResponse
         console.log(result)
-        if (result.workerResult === 'Канал существует')  {
+        if (result.data.workerResult === 'Канал существует')  {
             ctx.scene.session.state.user.userChannels[0].parseChannels.push(ctx.message.text)
             await ctx.reply('Канал успешно добавлен! Напишите название 3-го канала', channelsCommandKeyboard)
             await ctx.wizard.next()
@@ -85,7 +84,7 @@ thirdChannel.on('text', async (ctx) => {
         const result = await channelValidator.validate('http://localhost:8081/api/validateChannel', {
             channelName : ctx.message.text
         }) as IValidateChannelResponse
-        if (result.workerResult === 'Канал существует')  {
+        if (result.data.workerResult === 'Канал существует')  {
             ctx.scene.session.state.user.userChannels[0].parseChannels.push(ctx.message.text)
             await ctx.reply('3-ий канал успешно добавлен!')
             const result = await postRequest(ctx.scene.session.state.user.userChannels[0].parseChannels)
