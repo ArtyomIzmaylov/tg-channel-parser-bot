@@ -14,3 +14,8 @@ export interface ISelectedChannelUser {
     index : string
     channels : string[]
 }
+
+export interface ISaveChannelUser {
+    title : string
+    channels : string[]
+}

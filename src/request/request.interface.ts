@@ -14,4 +14,5 @@ export interface IRequestUserChannel {
 }
 export interface IRequestSendChannels {
     userChannels : IRequestUserChannel[]
+    modeGen : string
 }

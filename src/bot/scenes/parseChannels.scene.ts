@@ -2,9 +2,9 @@ import {Composer, Markup, Scenes} from "telegraf";
 import {MyContext} from "../context/context.interface";
 import {ChannelsFetcher} from "../../fetcher/channels.fetcher";
 import {IResponseFetchChannels, IResponseGenerateTexts} from "../../response/response.interface";
-import {IRequestSendChannels, IRequestUserChannel} from "../../request/request.interface";
+import {IRequestSendChannels} from "../../request/request.interface";
 import {TextGenerator} from "../../generator/text.generator";
-import {ISelectedChannelUser} from "../../user/user.interface";
+import {ISaveChannelUser, ISelectedChannelUser} from "../../user/user.interface";
 
 const zeroStep = new Composer<MyContext>();
 const firstStep = new Composer<MyContext>()
@@ -39,45 +39,75 @@ zeroStep.on('text', async (ctx) => {
         console.log(e)
     }
 })
-
-
 firstStep.action(['chn_0', 'chn_1', 'chn_2', 'Выйти'], async (ctx) => {
-    console.log(ctx.match.input)
-    if (ctx.match.input === 'Выйти') {
-        await ctx.scene.leave()
-        await ctx.editMessageText('Вы вышли. Если захотите снова искать, используйте команда /parseChannels')
+    try {
+        if (ctx.match.input === 'Выйти') {
+            await ctx.scene.leave()
+            await ctx.editMessageText('Вы вышли. Если захотите снова искать, используйте команда /parseChannels')
 
-    }
-    else {
-        const userChannel = (ctx.scene.session.state.userChannels).find(channel => channel.index === ctx.match.input) as ISelectedChannelUser
-        const sendData : IRequestSendChannels = {
-            userChannels : [
-                {
-                    title : userChannel.title,
-                    channels : userChannel.channels
-                }
-            ]
         }
-        const generateText= await textGenerator.generate('http://localhost:8081/api/parseChannels', sendData) as IResponseGenerateTexts
-        await ctx.reply(generateText.result[0].data)
-        await ctx.reply(`Контент для канала ${userChannel.title} успешно сгенерировался. Примите решение`,  Markup.inlineKeyboard(
-            [
-                [Markup.button.callback('Удалить ссылки', 'deleteAdds')],
-                [Markup.button.callback('Перегенерировать', 'regenerate')],
-                [Markup.button.callback('Готово', 'exit')],
+        else {
+            const userChannel = (ctx.scene.session.state.userChannels).find(channel => channel.index === ctx.match.input) as ISelectedChannelUser
+            ctx.scene.session.state.saveChannelUser = {title : userChannel.title, channels : userChannel.channels} as ISaveChannelUser
+            const sendData : IRequestSendChannels = {
+                userChannels : [
+                    {
+                        title : userChannel.title,
+                        channels : userChannel.channels
+                    }
+                ],
+                modeGen : 'PromptConnectText'
+            }
+            const generateText= await textGenerator.generate('http://localhost:8081/api/parseChannels', sendData) as IResponseGenerateTexts
 
-            ]
-        ))
+            await ctx.reply(generateText.result[0].data)
+            await ctx.reply(`Контент для канала ${userChannel.title} успешно сгенерировался. Примите решение`,  Markup.inlineKeyboard(
+                [
+                    [Markup.button.callback('Удалить ссылки', 'deleteAdds')],
+                    [Markup.button.callback('Перегенерировать', 'regenerate')],
+                    [Markup.button.callback('Готово', 'exit')],
 
-        await ctx.scene.leave()
+                ]
+            ))
+
+            await ctx.wizard.next()
+        }
     }
+    catch (e) {
+        console.log(e)
+    }
+
 
 })
-
+secondStep.action(['deleteAdds', 'regenerate', 'exit'], async (ctx) => {
+    let modeGen = ''
+    if (ctx.match.input === 'exit') {
+        ctx.scene.leave()
+    }
+    else if (ctx.match.input === 'regenerate') {
+        modeGen = 'PromptChangeText'
+    }
+    else if (ctx.match.input === 'deleteAdds') {
+        modeGen = 'PromptDelAdvText'
+    }
+    const sendData : IRequestSendChannels = {
+        userChannels : [
+            {
+                title : ctx.scene.session.state.saveChannelUser.title,
+                channels : ctx.scene.session.state.saveChannelUser.channels
+            }
+        ],
+        modeGen : modeGen
+    }
+    const generateText= await textGenerator.generate('http://localhost:8081/api/parseChannels', sendData) as IResponseGenerateTexts
+    await ctx.reply(generateText.result[0].data)
+    await ctx.scene.leave()
+})
 
 export const parseChannelsScene = new Scenes.WizardScene<MyContext>(
     "parseChannelsScene",
     zeroStep,
-    firstStep
+    firstStep,
+    secondStep
 );
 
