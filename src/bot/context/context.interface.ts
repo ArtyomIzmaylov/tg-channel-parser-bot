@@ -1,22 +1,30 @@
 import {Context, Scenes} from "telegraf";
-import {IMarkupCategoryButton} from "../keyboard/find.command.keyboard";
+import {ISaveChannelUser, ISelectedChannelUser, IUser} from "../../user/user.interface";
+
+
+
 
 
 
 interface MyWizardSession extends Scenes.WizardSessionData {
     state : {
-        selectedCategories: any[];
-        markupCategoryKeyboardProp : IMarkupCategoryButton[];
+        user : IUser
+        userChannels : ISelectedChannelUser[]
+        saveChannelUser : ISaveChannelUser
     }
 }
 
 interface MySession extends Scenes.WizardSession<MyWizardSession> {
-    selectedCategories: string[];
+    user : IUser
+    userChannels : ISelectedChannelUser[]
+    saveChannelUser : ISaveChannelUser
 }
 
 export interface MyContext extends Context {
-    myContextProp: string;
     session: MySession;
     scene: Scenes.SceneContextScene<MyContext, MyWizardSession>;
     wizard: Scenes.WizardContextWizard<MyContext>;
 }
+
+
+
